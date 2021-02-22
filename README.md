@@ -1,0 +1,2 @@
+# SomeCode
+Project for interview
