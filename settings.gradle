@@ -1,2 +1,3 @@
 include ':app'
+include ':mvi'
 rootProject.name = "Motiv8Exam"
