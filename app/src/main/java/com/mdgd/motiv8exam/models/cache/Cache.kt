@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface Cache {
     suspend fun addProduct(product: Product)
-
     fun getProductsFlow(): Flow<List<Product>>
+
+    suspend fun putFilter(s: String)
+    fun getFilterFlow(): Flow<String>
 }

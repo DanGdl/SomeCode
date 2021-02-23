@@ -11,7 +11,10 @@ import com.mdgd.mvi.MviViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 class GroceriesViewModel(private val network: Network, private val cache: Cache) :
@@ -21,7 +24,6 @@ class GroceriesViewModel(private val network: Network, private val cache: Cache)
         e.printStackTrace()
         setState(GroceriesScreenState.ShowError(e))
     }
-    private val filter = MutableStateFlow("")
     private var observingJob: Job? = null
     private var setupJob: Job? = null
 
@@ -43,7 +45,7 @@ class GroceriesViewModel(private val network: Network, private val cache: Cache)
 
     override fun filter(filterText: String?) {
         viewModelScope.launch {
-            filter.emit(filterText ?: "")
+            cache.putFilter(filterText ?: "")
         }
     }
 
@@ -51,17 +53,18 @@ class GroceriesViewModel(private val network: Network, private val cache: Cache)
         super.onAny(owner, event)
         if (event == Lifecycle.Event.ON_START && setupJob == null) {
             setupJob = viewModelScope.launch(exceptionHandler) {
-                cache.getProductsFlow().combine(filter) { list: List<Product>, filterTxt: String ->
-                    val filtered = ArrayList(list)
-                    if (!TextUtils.isEmpty(filterTxt)) {
-                        val weight = filterTxt.toFloat()
-                        for (item in list) {
-                            if (item.weight.replace("kg", "").toFloat() < weight) {
-                                filtered.remove(item)
+                cache.getProductsFlow()
+                    .combine(cache.getFilterFlow()) { list: List<Product>, filterTxt: String ->
+                        val filtered = ArrayList(list)
+                        if (!TextUtils.isEmpty(filterTxt)) {
+                            val weight = filterTxt.toFloat()
+                            for (item in list) {
+                                if (item.weight.replace("kg", "").toFloat() < weight) {
+                                    filtered.remove(item)
+                                }
                             }
                         }
-                    }
-                    filtered
+                        filtered
                 }.collect {
                     setState(GroceriesScreenState.SetData(it))
                 }

@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 class ProductCacheImpl : Cache {
     private val products = MutableStateFlow(ArrayList<Product>())
+    private val filter = MutableStateFlow("")
 
     override suspend fun addProduct(product: Product) {
         val value = ArrayList(products.value)
@@ -15,5 +16,13 @@ class ProductCacheImpl : Cache {
 
     override fun getProductsFlow(): Flow<List<Product>> {
         return products
+    }
+
+    override suspend fun putFilter(s: String) {
+        filter.emit(s)
+    }
+
+    override fun getFilterFlow(): Flow<String> {
+        return filter
     }
 }
