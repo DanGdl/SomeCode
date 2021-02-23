@@ -14,7 +14,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 
 class GroceriesViewModel(private val network: Network, private val cache: Cache) :
@@ -29,8 +29,9 @@ class GroceriesViewModel(private val network: Network, private val cache: Cache)
 
     override fun onObservingChanged() {
         observingJob = if (observingJob == null) {
-            viewModelScope.launch(exceptionHandler + Dispatchers.IO) {
-                network.getGroceries().receiveAsFlow()
+            viewModelScope.launch(exceptionHandler) {
+                network.getGroceries()
+                    .flowOn(Dispatchers.IO)
                     .catch { e ->
                         e.printStackTrace()
                         setState(GroceriesScreenState.ShowError(e))

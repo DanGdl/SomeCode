@@ -3,34 +3,37 @@ package com.mdgd.motiv8exam.models.network
 import com.google.gson.Gson
 import com.mdgd.motiv8exam.models.dto.Product
 import com.neovisionaries.ws.client.*
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.sendBlocking
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 
 class NetworkImpl : Network {
 
     private val gson = Gson()
 
-    override suspend fun getGroceries(): Channel<Product> {
-        // TODO connect callbackFlow?
-        val channel = Channel<Product>(Channel.Factory.CONFLATED)
-        try {
+    override suspend fun getGroceries(): Flow<Product> {
+        return callbackFlow {
             val ws = WebSocketFactory().createSocket(
                 "ws://superdo-groceries.herokuapp.com/receive",
                 5000
             )
-            ws.addListener(object : WebSocketAdapter() {
+            val listener = object : WebSocketAdapter() {
                 override fun onTextMessage(
                     websocket: WebSocket?,
                     text: String?
                 ) {
-                    channel.sendBlocking(gson.fromJson(text, Product::class.java))
+                    offer(gson.fromJson(text, Product::class.java))
+                }
+
+                override fun onError(websocket: WebSocket?, cause: WebSocketException?) {
+                    error(Throwable(cause))
                 }
 
                 override fun onConnectError(
                     websocket: WebSocket?,
                     exception: WebSocketException?
                 ) {
-                    channel.close(exception)
+                    error(Throwable(exception))
                 }
 
                 override fun onDisconnected(
@@ -39,13 +42,15 @@ class NetworkImpl : Network {
                     clientCloseFrame: WebSocketFrame?,
                     closedByServer: Boolean
                 ) {
-                    channel.close(Throwable("Socket disconnected"))
+                    error(Throwable("Socket disconnected"))
                 }
-            })
+            }
+            ws.addListener(listener)
             ws.connect()
-        } catch (e: Throwable) {
-            channel.close(e)
+            awaitClose {
+                ws.removeListener(listener)
+                ws.disconnect()
+            }
         }
-        return channel
     }
 }

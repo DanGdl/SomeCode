@@ -1,8 +1,8 @@
 package com.mdgd.motiv8exam.models.network
 
 import com.mdgd.motiv8exam.models.dto.Product
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 
 interface Network {
-    suspend fun getGroceries(): Channel<Product>
+    suspend fun getGroceries(): Flow<Product>
 }
