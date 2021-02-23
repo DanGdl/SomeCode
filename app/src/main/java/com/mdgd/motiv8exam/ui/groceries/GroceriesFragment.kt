@@ -2,7 +2,6 @@ package com.mdgd.motiv8exam.ui.groceries
 
 import android.os.Bundle
 import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,12 +14,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.mdgd.motiv8exam.R
 import com.mdgd.motiv8exam.models.dto.Product
 import com.mdgd.motiv8exam.ui.groceries.adapter.ProductsAdapter
+import com.mdgd.motiv8exam.util.TextWatcherImpl
 import com.mdgd.mvi.HostedFragment
 
 class GroceriesFragment :
     HostedFragment<GroceriesContract.View, GroceriesScreenState, GroceriesContract.ViewModel, GroceriesContract.Host>(),
     GroceriesContract.View,
-    CompoundButton.OnCheckedChangeListener, TextWatcher {
+    CompoundButton.OnCheckedChangeListener {
 
     private val adapter = ProductsAdapter()
     private var recycler: RecyclerView? = null
@@ -43,7 +43,12 @@ class GroceriesFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         view.findViewById<ToggleButton>(R.id.start_stop).setOnCheckedChangeListener(this)
-        view.findViewById<EditText>(R.id.filter_input).addTextChangedListener(this)
+        view.findViewById<EditText>(R.id.filter_input)
+            .addTextChangedListener(object : TextWatcherImpl() {
+                override fun afterTextChanged(s: Editable?) {
+                    model!! filter (s?.toString()?.trim())
+                }
+            })
         recycler = view.findViewById(R.id.products)
         recycler?.layoutManager = LinearLayoutManager(requireContext())
         recycler?.adapter = adapter
@@ -62,16 +67,5 @@ class GroceriesFragment :
 
     override fun onCheckedChanged(buttonView: CompoundButton?, isChecked: Boolean) {
         model!!.onObservingChanged()
-    }
-
-    // todo: use delegates?
-    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-    }
-
-    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-    }
-
-    override fun afterTextChanged(s: Editable?) {
-        model!! filter (s?.toString()?.trim())
     }
 }
