@@ -1,11 +1,19 @@
-package com.mdgd.motiv8exam.models;
+package com.mdgd.motiv8exam.models
 
-import android.content.Context;
+import android.content.Context
+import com.mdgd.motiv8exam.models.cache.Cache
+import com.mdgd.motiv8exam.models.cache.ProductCacheImpl
+import com.mdgd.motiv8exam.models.network.Network
+import com.mdgd.motiv8exam.models.network.NetworkImpl
 
-public class ModelsProviderImpl implements ModelsProvider {
-    private final Context appCtx;
+class ModelsProviderImpl(private val appCtx: Context) : ModelsProvider {
+    private val cache = ProductCacheImpl()
 
-    public ModelsProviderImpl(Context context) {
-        appCtx = context;
+    override fun getCache(): Cache {
+        return cache
+    }
+
+    override fun getNetwork(): Network {
+        return NetworkImpl()
     }
 }

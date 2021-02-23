@@ -22,7 +22,7 @@ buildscript {
     ext.coroutins = "1.4.2"
 
     project.ext {
-        min = 20
+        min = 21
         target = 30
         compile = 30
         tools = "30.0.2"
