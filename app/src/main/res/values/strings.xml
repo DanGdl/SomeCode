@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Super.do Market!</string>
+    <string name="empty" />
+    <string name="dialog_error_title">Some error happened</string>
+    <string name="dialog_error_message">Details:</string>
+    <string name="stop">Stop update</string>
+    <string name="start">Start update</string>
+    <string name="filter_input_hint">Filter weight below entered value</string>
+</resources>
